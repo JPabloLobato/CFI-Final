@@ -1,7 +1,7 @@
 # CFI-Final
 ---
-Curso: 4º cuatrimestre Ing.Informática
-Github: https://github.com/JPabloLobato/CFI-Final.git
+## Curso: 4º cuatrimestre Ing.Informática
+## Github: https://github.com/JPabloLobato/CFI-Final.git
 ---
 Índice:
 - [Diseño y Modelado de la Arquitectura de Comunicación](#diseño-y-modelado-de-la-arquitectura-de-comunicación)
