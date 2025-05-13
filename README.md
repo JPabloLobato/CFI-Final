@@ -228,6 +228,141 @@ La he elegido por varias razones:
 1. Proporciona **254 direcciones IP utilizables** (2^8-2), más que suficiente para los servicios municipales.
 2. Limita el tráfico de broadcast a segmentos de un tamaño que se puede administrar con facilidad.
 
-##3.2 Enrutamineto y rutas óptimas:
+## 3.2 Enrutamineto y rutas óptimas:
 
 ![](https://github.com/JPabloLobato/CFI-Final/blob/de4d225a84baace13373205d6d02bdeee6dcaa9d/ImagenesDOC/grafo.drawio.png)
+En este algoritmo de dijktra vemos que en lo que más tarda en comunicar es a la red de emergencia, da igual por donde vayas porque la red de emergencias y transporte-monitoreo esta en una sola.
+
+# 4. Capa de Transporte – Selección de Protocolos y Cálculo del Tamaño de Ventana
+
+## 4.1 Selección de Protocolos de Transporte
+
+| Características                  | TCP | UDP | Servicio municipal óptimo             |
+|----------------------------------|-----|-----|----------------------------------------|
+| Orientado a conexión             | Sí  | No  | TCP: servicios gubernamentales críticos |
+| Control de flujo                 | Sí  | No  | TCP: transmisión de documentos oficiales |
+| Control de congestión            | Sí  | No  | TCP: servicios ciudadanos              |
+| Detección/corrección de errores  | Sí  | No  | TCP: datos financieros                 |
+| Entrega ordenada                 | Sí  | No  | TCP: bases de datos distribuidas       |
+| Bajo overhead                    | No  | Sí  | UDP: streaming de cámaras              |
+| Baja latencia                    | No  | Sí  | UDP: aviso de emergencias              |
+| Multicast/broadcast              | No  | Sí  | UDP: avisos a ciudadanos               |
+
+### Servicios específicos:
+1. **Servicios gubernamentales:**
+   - **Protocolo:** TCP
+   - **Justificación:** Lo principal que buscamos en estas transacciones son la integridad de los datos y la seguridad, ya que cualquier error en ellos puede conllevar a problemas legales.
+
+2. **Servicios de seguridad pública y emergencias:**
+   - **Protocolo:** Híbrido (UDP para video, TCP para datos).
+   - **Justificación:** Las cámaras necesitan rapidez en la transmisión de datos, no importa si un frame se pierde ocasionalmente.
+
+3. **Transporte y monitoreo ambiental:**
+   - **Protocolo:** UDP.
+   - **Justificación:** Los sensores IoT envían datos continuamente lo que colapsaría el protocolo TCP.
+
+4. **Servicios multimedia para ciudadanos:**
+   - **Protocolo:** UDP para streaming y TCP para VoD.
+   - **Justificación:** Para el streaming al ser en vivo debemos ceder la posible pérdida de algunos frames.
+
+---
+
+## 4.2 Cálculo del Tamaño de Ventana en TCP
+
+- **Fórmula:** Ventana óptima = Ancho de banda x RTT.
+- **RTT:** 50 ms = 0.050 s.
+- **MSS:** 1500 bytes.
+- **Ancho de banda:** 300 Mbps (supuesto) = 300,000,000 bps.
+
+### Cálculo:
+1. Ventana óptima = 300,000,000 bps x 0.050 s = 15,000,000 bits.
+2. Convertir de bits a bytes: 15,000,000 / 8 = 1,875,000 bytes.
+3. Número de segmentos MSS en tránsito simultáneamente:
+   - Número de segmentos = Tamaño de ventana / MSS.
+   - 1,875,000 bytes / 1500 bytes/segmento = **1250 segmentos**.
+
+---
+
+# 5. Capa de Aplicación – Servicios, Multiplexación y Multimedia
+
+## 5.1 Implementación de Servicios y Resolución de Nombres
+
+- **DNS:** Configuraré un servidor DNS para la red. Así la red podrá traducir el nombre de un dominio en una dirección IP.
+- **FTP/SFTP:** En la red gubernamental pondré un servidor de archivos para poder almacenarlos todos.
+- **HTTP/HTTPS:** Para colocar web para la ciudadanía y como web del ayuntamiento.
+
+## 5.2 Servicios Multimedia
+
+- **Servicio de Streaming con protocolo UDP:**
+  - Se utilizará en cámaras de vigilancia y eventos públicos.
+  - Garantiza una baja latencia a pesar de perder de vez en cuando un poco de información en los paquetes.
+
+- **Protocolo adaptativo:** 
+  - DASH para adaptarse a los cambios del ancho de banda: Cat 6a, fibra o inalámbrica.
+
+---
+
+# 6. Seguridad – Estrategias y Configuración
+
+## 6.1 Políticas y Medidas de Seguridad
+
+### Diseño de la red:
+Dividiré las zonas en 3, incluyendo la zona DMZ, siendo:
+- **Zona 0:** La más crítica donde más seguridad debe haber.
+- **Zona 3:** La menos crítica.
+
+Esto facilitará la expansión de segmentos de la red en un futuro.
+
+| Zona    | Nivel de Seguridad | Recursos Protegidos             | Medidas Principales                     |
+|---------|--------------------|----------------------------------|-----------------------------------------|
+| Zona 0  | Crítico            | Base de datos, sistemas financieros | Aislamiento físico, autentificación MFA, cifrado total |
+| Zona 1  | Alto               | Sistemas de emergencia, servidores de control | Firewalls, IPS/IDS, VPN                |
+| Zona 2  | Medio              | Redes, servicios de administración | VLANs y firewall                        |
+
+### Segmentos sensibles:
+Para interconectar de forma segura los diferentes segmentos sensibles, configuraremos **túneles VPN IPsec site-to-site**.
+
+---
+
+## 6.2 Cifrado y Autenticación
+
+- **TLS/SSL:** Configuración para cifrar las comunicaciones críticas, por ejemplo, portales web y transferencias.
+- **AAA:** Protocolo para autenticar a los usuarios, que se implementará en un servidor.
+
+---
+
+# 7. Implementación en Cisco Packet Tracer
+
+La red la hemos estructurado en tres routers:
+1. **DMZ.**
+2. **Gubernamental.**
+3. **Ciudadanía-transporte-emergencias.**
+
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/redcompleta.png)
+
+Fotos por segmentos:
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/redemergencias.png)
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/redgubernamental.png)
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/reddmz.png)
+
+## 7.1 Construcción de la Topología
+Hemos creado servidores FTP, HTTP, DNS y AAA para almacenar datos autentificar al usuario hacer web proteger la web y traducir el dominio por la dirección ip correspondiente. También vpn, algunos acls y configuración en los firewalls.
+
+Aquí algunas pruebas:
+
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/planta6gub.png)
+
+El ACL en un firewall:
+
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/aclgobierno.png)
+
+## 7.2 Configuración de Protoclos y Servicios
+Capturas de pruebas del funcionamiento de la red y su configuración:
+
+La configuración de un ACS, todos siguen el mismo patron:
+
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/ac.png)
+
+La web de la dmz:
+
+![](https://github.com/JPabloLobato/CFI-Final/blob/4f44b92e3a6d12fff25d3b96d52fde06c548fe5d/ImagenesDOC/Web%20.png)
